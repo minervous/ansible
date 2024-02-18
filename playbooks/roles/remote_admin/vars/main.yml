@@ -1,0 +1,8 @@
+---
+users:
+  - user: gooroo
+    key:
+      item: 1pass
+      args:
+        vault: Private
+        field: public_key

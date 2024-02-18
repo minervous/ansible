@@ -1,0 +1,7 @@
+---
+- name: Add SSH keys
+  become: true
+  ansible.posix.authorized_key:
+    user: "{{ item.user }}"
+    key: "{{ lookup('community.general.onepassword', item.key.item, **item.key.args) }}"
+  with_items: "{{ users }}"

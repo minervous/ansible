@@ -1,0 +1,49 @@
+---
+- name: Install GNU tar (macOS)
+  community.general.homebrew:
+    name: gnu-tar
+  when: ansible_facts.os_family == 'Darwin'
+
+- name: Check if sshpass is available
+  command: which sshpass
+  register: sshpass_in_path
+  ignore_errors: true
+
+- when: sshpass_in_path.rc != 0
+  block:
+    - name: Download sshpass
+      get_url:
+        url: "https://sourceforge.net/projects/sshpass/files/sshpass/{{ sshpass.version }}/sshpass-{{ sshpass.version }}.tar.gz"
+        dest: "/tmp/sshpass-{{ sshpass.version }}.tar.gz"
+        checksum: "{{ sshpass.checksum }}"
+
+    - name: Unpack sshpass
+      unarchive:
+        src: "/tmp/sshpass-{{ sshpass.version }}.tar.gz"
+        dest: /tmp
+        remote_src: yes
+
+    - name: Configure sshpass
+      command: ./configure --disable-debug --disable-dependency-tracking --disable-silent-rules
+      args:
+        chdir: /tmp/sshpass-{{ sshpass.version }}
+
+    - name: Make sshpass
+      make:
+        chdir: /tmp/sshpass-{{ sshpass.version }}
+
+    - name: Install sshpass
+      become: true
+      command: make install
+      args:
+        chdir: /tmp/sshpass-{{ sshpass.version }}
+  always:
+    - name: Remove temporary sshpass files
+      file:
+        path: /tmp/sshpass-{{ sshpass.version }}
+        state: absent
+
+    - name: Remove sshpass archive
+      file:
+        path: /tmp/sshpass-{{ sshpass.version }}.tar.gz
+        state: absent

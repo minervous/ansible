@@ -1,0 +1,15 @@
+---
+- hosts: localhost
+  roles:
+    - install_sshpass
+
+- hosts: github_runners
+  vars:
+    github_target: 'minervous'  # This is an organization, but could be 'owner/some-repo' instead
+    gha_runner:
+      name: locomotive2
+      group:
+      labels: []
+  roles:
+    - remote_admin
+    - github_actions_runner
