@@ -1,0 +1,13 @@
+---
+ungrouped:
+  hosts:
+    localhost:
+      ansible_connection: local
+      ansible_python_interpreter: '/usr/bin/env python'
+
+github_runners:
+  hosts:
+    locomotive2:
+      ansible_host: 192.168.2.50
+      ansible_user: gooroo
+      ansible_python_interpreter: '/usr/bin/env python3'
