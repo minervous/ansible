@@ -1,0 +1,2 @@
+---
+runner_folder: C:\GitHub\{{ github_target }}\actions-runner

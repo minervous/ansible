@@ -16,5 +16,3 @@ arch_map:
 platform: "{{ os_map.get(ansible_facts['os_family'], 'linux') }}-{{ arch_map.get(ansible_facts['architecture'], 'x64') }}"
 
 sha_pattern: "^.*<!-- BEGIN SHA {{ platform }} -->([^<]+)<!-- END SHA {{ platform }} -->.*$"
-
-runner_folder: "/opt/github/{{ github_target }}/actions-runner"
