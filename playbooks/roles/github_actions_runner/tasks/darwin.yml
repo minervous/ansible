@@ -1,0 +1,71 @@
+---
+- name: Create a runner folder
+  become: true
+  file:
+    path: "{{ runner_folder }}"
+    state: directory
+    owner: "{{ ansible_user_id }}"
+
+- name: Get the latest runner release
+  uri:
+    url: "https://api.github.com/repos/actions/runner/releases/latest"
+    method: GET
+    headers:
+      Accept: application/vnd.github+json
+      Authorization: Bearer {{ lookup('community.general.onepassword', gh_api_token.item, **gh_api_token.args) }}
+      X-GitHub-Api-Version: "2022-11-28"
+  register: latest_runner
+
+- name: Download a runner v{{version}}
+  vars:
+    assets_url: "{{ latest_runner.json.assets_url }}"
+    checksum: "{{ latest_runner.json.body | regex_search(sha_pattern, multiline=True) | regex_replace(sha_pattern, '\\1') | trim }}"
+    version: "{{ latest_runner.json.tag_name | regex_replace('v(.+)', '\\1') }}"
+  get_url:
+    url: "https://github.com/actions/runner/releases/download/v{{version}}/actions-runner-{{platform}}-{{version}}.tar.gz"
+    dest: "{{ runner_folder }}/actions-runner-{{ platform }}-{{ version }}.tar.gz"
+    checksum: "sha256:{{ checksum }}"
+  register: donwloaded_runner
+
+- name: Unpack the runner
+  command:
+    cmd: tar xzf "{{ donwloaded_runner.dest }}"
+    chdir: "{{ runner_folder }}"
+    creates: "run.sh"
+
+- name: Get registration token
+  vars:
+    endpoint: "{{ 'orgs' if '/' not in github_target else 'repos' }}"
+  uri:
+    url: "https://api.github.com/{{endpoint}}/{{github_target}}/actions/runners/registration-token"
+    method: POST
+    headers:
+      Accept: application/vnd.github+json
+      Authorization: Bearer {{ lookup('community.general.onepassword', gh_api_token.item, **gh_api_token.args) }}
+      X-GitHub-Api-Version: 2022-11-28
+    status_code: [201]
+  register: registration_token
+
+- name: Configure the runner
+  shell:
+    chdir: "{{ runner_folder }}"
+    cmd: >-
+      ./config.sh
+      --url {{ ('https://github.com/' + github_target) | quote }}
+      --token {{ registration_token.json.token | quote }}
+      --name {{ gha_runner.name | quote }}
+      --runnergroup {{ gha_runner.group | quote }}
+      --labels {{ gha_runner.labels | join(',') | quote }}
+      --unattended
+    creates: .runner
+
+- name: Install the runner as a service
+  shell:
+    chdir: "{{ runner_folder }}"
+    cmd: ./svc.sh install
+    creates: .service
+
+- name: Run the runner service
+  shell:
+    chdir: "{{ runner_folder }}"
+    cmd: ./svc.sh start

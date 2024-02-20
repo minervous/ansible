@@ -7,9 +7,10 @@
   vars:
     github_target: 'minervous'  # This is an organization, but could be 'owner/some-repo' instead
     gha_runner:
-      name: locomotive2
+      name: "{{ inventory_hostname }}"
       group:
       labels: []
   roles:
-    - remote_admin
+    - role: remote_admin
+      when: ansible_facts['os_family'] != 'Windows'
     - github_actions_runner
