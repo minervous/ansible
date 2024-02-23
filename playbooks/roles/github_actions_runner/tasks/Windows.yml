@@ -52,11 +52,11 @@
 - name: Configure and run the runner service
   win_shell: >-
     .\config.cmd
-    --url {{ ('https://github.com/' + github_target) | quote }}
-    --token {{ registration_token.json.token | quote }}
-    --name {{ gha_runner.name | quote }}
-    --runnergroup {{ gha_runner.group | quote }}
-    --labels {{ gha_runner.labels | join(',') | quote }}
+    --url {{ ('https://github.com/' + github_target) | ansible.windows.quote }}
+    --token {{ registration_token.json.token | ansible.windows.quote }}
+    --name {{ gha_runner.name | ansible.windows.quote }}
+    --runnergroup {{ gha_runner.group | ansible.windows.quote }}
+    --labels {{ gha_runner.labels | join(',') | ansible.windows.quote }}
     --unattended
     --runasservice
   args:
