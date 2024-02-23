@@ -19,4 +19,4 @@
         gha_runner:
           name: "{{ inventory_hostname }}"
           group:
-          labels: ['Qt', 'Qt 6.6']
+          labels: ['Qt', 'qt66']
