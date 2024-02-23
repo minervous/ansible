@@ -59,6 +59,12 @@
       --unattended
     creates: .runner
 
+- name: Setup runner environment
+  shell:
+    chdir: "{{ runner_folder }}"
+    cmd: ./env.sh
+    creates: .env
+
 - name: Install the runner as a service
   shell:
     chdir: "{{ runner_folder }}"
