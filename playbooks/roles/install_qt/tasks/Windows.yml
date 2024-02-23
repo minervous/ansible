@@ -1,0 +1,66 @@
+---
+- name: Install aqtinstall
+  win_command: pip install aqtinstall
+
+- name: Install Qbs (Windows)
+  win_chocolatey:
+    name: qbs
+    state: latest
+  when: ansible_facts.os_family == 'Windows'
+
+- name: Get the latest available version
+  win_command:
+    argv:
+      - python
+      - -m
+      - aqt
+      - list-qt
+      - "{{ aqt_host_os }}"
+      - desktop
+      - --spec
+      - "{{ qt_version }}"
+      - --latest-version
+  register: latest_version
+
+- name: Install desktop Qt {{ qt_full_version }}
+  win_command:
+    argv:
+      - python
+      - -m
+      - aqt
+      - install-qt
+      - "{{ aqt_host_os }}"
+      - desktop
+      - "{{ qt_full_version }}"
+      - "{{ aqt_arch }}"
+      - --modules
+      - all
+      - --outputdir
+      - "{{ qt_dir }}"
+    creates: "{{ qmake_path }}"
+
+- name: Autodetect toolchains
+  win_command: qbs setup-toolchains {{ qbs_system }} --detect
+
+- name: Create Qbs profile for Qt
+  win_command:
+    argv:
+      - qbs
+      - setup-qt
+      - "{{ qbs_system }}"
+      - "{{ qmake_path | ansible.windows.quote }}"
+      - "{{ qbs_profile | ansible.windows.quote }}"
+
+- name: Add base profile for Qt profile
+  win_command:
+    argv:
+      - qbs
+      - config
+      - "{{ qbs_system }}"
+      - "{{ ('profiles.' + qbs_profile + '.baseProfile') | ansible.windows.quote }}"
+      - "{{ qbs_base_profile | ansible.windows.quote }}"
+
+- name: Set the default profile
+  win_command:
+    argv: qbs config {{ qbs_system }} defaultProfile {{ qbs_profile | ansible.windows.quote }}
+  when: qbs_set_as_default

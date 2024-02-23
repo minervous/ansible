@@ -1,0 +1,31 @@
+---
+aqt_host_os: "{{ aqt_os_map.get(ansible_facts.os_family, 'linux') }}"
+aqt_arch: "{{ 'win64_msvc2019_64' if ansible_facts.os_family == 'Windows' else '' }}"
+
+qt_version: "6.6"
+
+qbs_profile: "qt{{ (qt_version | split('.'))[0:2] | join('')  }}"  # 6.6.0 => qt66
+qbs_base_profile: "{{ qbs_base_profile_map.get(ansible_facts.os_family, 'gcc') }}"
+qbs_set_as_default: true
+qbs_system: "{{ '--system' if ansible_facts.os_family == 'Windows' else '' }}"
+
+# internal
+
+qt_full_version: "{{ latest_version.stdout | trim }}"
+
+qmake_bin: "{{ 'qmake.exe' if ansible_facts.os_family == 'Windows' else 'qmake' }}"
+qmake_path: "{{ qt_dir }}/{{ qt_full_version }}/{{ qt_subdir }}/bin/{{ qmake_bin }}"
+
+aqt_os_map:
+  Darwin: mac
+  Windows: windows
+
+qt_os_map:
+  Darwin: macos
+  Windows: "{{ aqt_arch | regex_replace('^win64_', '') }}"
+
+qt_subdir: "{{ qt_os_map.get(ansible_facts.os_family, 'gcc_64') }}"
+
+qbs_base_profile_map:
+  Darwin: xcode-macosx-arm64
+  Windows: MSVC2022-x64

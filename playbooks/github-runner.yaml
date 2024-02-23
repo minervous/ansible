@@ -4,13 +4,19 @@
     - install_sshpass
 
 - hosts: github_runners
-  vars:
-    github_target: 'minervous'  # This is an organization, but could be 'owner/some-repo' instead
-    gha_runner:
-      name: "{{ inventory_hostname }}"
-      group:
-      labels: []
   roles:
     - role: remote_admin
       when: ansible_facts['os_family'] != 'Windows'
-    - github_actions_runner
+
+    - role: install_qt
+      vars:
+        qt_version: "6.6"
+        qbs_set_as_default: false
+
+    - role: github_actions_runner
+      vars:
+        github_target: 'minervous'  # This is an organization, but could be 'owner/some-repo' instead
+        gha_runner:
+          name: "{{ inventory_hostname }}"
+          group:
+          labels: ['Qt', 'Qt 6.6']

@@ -1,0 +1,53 @@
+---
+- name: Install pipx
+  pip:
+    name: pipx
+
+- name: Install aqtinstall
+  community.general.pipx:
+    name: aqtinstall
+
+- name: Install Qbs (macOS)
+  community.general.homebrew:
+    name: qbs
+    state: latest
+
+- name: Get the latest available version
+  command:
+    argv:
+      - aqt
+      - list-qt
+      - "{{ aqt_host_os }}"
+      - desktop
+      - --spec
+      - "{{ qt_version }}"
+      - --latest-version
+  register: latest_version
+
+- name: Install desktop Qt {{ qt_full_version }}
+  command:
+    argv:
+      - aqt
+      - install-qt
+      - "{{ aqt_host_os }}"
+      - desktop
+      - "{{ qt_full_version }}"
+      - "{{ aqt_arch }}"
+      - --modules
+      - all
+      - --outputdir
+      - "{{ qt_dir }}"
+    creates: "{{ qmake_path }}"
+
+- name: Autodetect toolchains
+  command: qbs setup-toolchains {{ qbs_system }} --detect
+
+- name: Create Qbs profile for Qt
+  command: qbs setup-qt {{ qbs_system }} '{{ qmake_path }}' '{{ qbs_profile }}'
+
+- name: Add base profile for Qt profile
+  command: qbs config {{ qbs_system }} 'profiles.{{ qbs_profile }}.baseProfile' '{{ qbs_base_profile }}'
+
+- name: Set the default profile
+  command: qbs config {{ qbs_system }} defaultProfile '{{ qbs_profile }}'
+  when: qbs_set_as_default
