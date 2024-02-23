@@ -1,0 +1,6 @@
+---
+- include_vars: "{{ ansible_facts['os_family'] }}.yml"
+  when: ansible_facts['os_family'] in ['Darwin', 'Windows']
+
+- include_tasks: "{{ ansible_facts['os_family'] }}.yml"
+  when: ansible_facts['os_family'] in ['Darwin', 'Windows']

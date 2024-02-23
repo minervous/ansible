@@ -1,0 +1,3 @@
+---
+qt_dir: C:\Work\Qt
+qmake_path: "{{ qt_dir }}\\{{ qt_full_version }}\\{{ qt_subdir }}\\bin\\{{ qmake_bin }}"
